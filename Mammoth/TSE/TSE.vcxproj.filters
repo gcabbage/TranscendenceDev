@@ -1651,5 +1651,8 @@
     <ClCompile Include="CAchievementRecord.cpp">
       <Filter>Source Files\Achievements</Filter>
     </ClCompile>
+    <ClCompile Include="CCSpaceObject.cpp">
+      <Filter>Source Files\TransLISP</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

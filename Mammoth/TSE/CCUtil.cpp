@@ -314,10 +314,16 @@ ICCItem *CreateListFromVector (const CVector &vVector)
 	return CreateListFromBinary(NULL_STR, &vVector, sizeof(vVector));
 	}
 
-CSpaceObject *CreateObjFromItem (const ICCItem *pItem, DWORD dwFlags)
+CSpaceObject *CreateObjFromItem (ICCItem *pItem, DWORD dwFlags)
 	{
 	if (pItem == NULL)
 		return NULL;
+
+	if (strEquals(pItem->GetTypeOf(), CONSTLIT("spaceObject")))
+		{
+		CCSpaceObject* pWrapper = dynamic_cast<CCSpaceObject*>(pItem);
+		return pWrapper->GetObj();
+		}
 
 	int iArg = pItem->GetIntegerValue();
 	if (iArg == 0)
@@ -348,7 +354,10 @@ CSpaceObject *CreateObjFromItem (const ICCItem *pItem, DWORD dwFlags)
 ICCItem *CreateObjPointer (CCodeChain &CC, CSpaceObject *pObj)
 	{
 	if (pObj)
-		return CC.CreateInteger((int)pObj);
+		{
+		ICCItem* pResult = new CCSpaceObject(pObj);
+		return pResult;
+		}
 	else
 		return CC.CreateNil();
 	}
@@ -445,7 +454,7 @@ CStation *CreateStationObjFromItem (CCodeChain &CC, ICCItem *pArg)
 	return (pObj ? pObj->AsStation() : NULL);
 	}
 
-CVector CreateVectorFromList (CCodeChain &CC, const ICCItem *pList)
+CVector CreateVectorFromList (CCodeChain &CC, ICCItem *pList)
 
 //	CreateVectorFromList
 //

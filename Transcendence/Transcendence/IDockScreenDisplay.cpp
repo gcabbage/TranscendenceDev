@@ -633,7 +633,7 @@ bool IDockScreenDisplay::ParseBackgrounDesc (ICCItem *pDesc, SDockScreenBackgrou
 
 		else if (strEquals(sType, TYPE_HERO))
 			{
-			if (const ICCItem* pObj = pDesc->GetElement(FIELD_OBJ))
+			if (ICCItem* pObj = pDesc->GetElement(FIELD_OBJ))
 				{
 				retDesc->iType = EDockScreenBackground::objHeroImage;
 				retDesc->pObj = CreateObjFromItem(pObj);

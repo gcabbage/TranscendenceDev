@@ -13,6 +13,8 @@ class CItemList;
 class COrbit;
 struct SDamageCtx;
 struct SSystemCreateCtx;
+class CCSpaceObject;
+template class CCItemPool<CCSpaceObject>;
 
 //	CodeChain context
 
@@ -207,7 +209,7 @@ class CCXMLWrapper : public ICCAtom
 
 		virtual ICCItem *Clone (CCodeChain *pCC) override;
 		virtual CString GetStringValue (void) const override { return m_pXML->ConvertToString(); }
-		virtual CString GetTypeOf (void) override { return CONSTLIT("xmlElement"); }
+		virtual CString GetTypeOf (void) const override { return CONSTLIT("xmlElement"); }
 		virtual ValueTypes GetValueType (void) const override { return Complex; }
 		virtual bool IsIdentifier (void) const override { return false; }
 		virtual bool IsFunction (void) const override { return false; }
@@ -222,6 +224,61 @@ class CCXMLWrapper : public ICCAtom
 		CXMLElement *m_pXML;
 		ICCItem *m_pRef;
 	};
+
+class CCSpaceObject : public ICCAtom
+	{
+	public:
+		CCSpaceObject(void) : m_dwID(OBJID_NULL), m_pObj(NULL), m_ivalid(-1), ICCAtom(NULL) { }
+		CCSpaceObject(DWORD dwID) : m_dwID(dwID), m_pObj(NULL), m_ivalid(-1), ICCAtom(NULL) { }
+		CCSpaceObject(CSpaceObject* pObj);
+
+		DWORD GetID(void) const { return m_dwID; }
+		CSpaceObject* GetObj(void) { if (IsEmpty()) Resolve(); return m_pObj; }
+
+		// Flags all the object pointers as invalid (maybe should be OnLeaveSystem)
+		static void NotifyOnNewSystem(void) { g_ivalid++;  }
+
+		// If m_ivalid and g_ivalid are different the pointer was created in a different system
+		bool IsEmpty(void) const { return ((m_ivalid != g_ivalid) || (m_pObj == NULL)); }
+		void Resolve(void);
+
+		//	ICCItem virtuals
+
+		virtual ICCItem* Clone(CCodeChain* pCC) override;
+		virtual bool IsInteger(void) const override { return true; }		// Because EvaluateArgs is looking for integers
+		virtual int GetIntegerValue(void) const override { return m_dwID; }
+		virtual CString GetStringValue(void) const override { return strFromInt(m_dwID); }
+		virtual CString GetTypeOf(void) const override { return CONSTLIT("spaceObject"); }
+		virtual ValueTypes GetValueType(void) const override { return Complex; }
+		virtual bool IsIdentifier(void) const override { return false; }
+		virtual bool IsFunction(void) const override { return false; }
+		virtual bool IsPrimitive(void) const override { return false; }
+		virtual CString Print(DWORD dwFlags = 0) const override { return strFromInt(m_dwID); }
+		virtual void Reset(void) override;
+
+		//	TSE Item pool
+		static ICCItem *CreateItem (DWORD dwID);
+		static ICCItem *CreateItem (CSpaceObject &pObj);
+
+		//	Not sure if we need the static version or not here..
+		// static void DestroyItem(ICCItem *pItem) { m_ObjectPool.DestroyItem(pItem); }
+
+
+	protected:
+		void DestroyItem(void) { m_ObjectPool.DestroyItem(this); }
+
+	private:
+		DWORD m_dwID;						//	Global ID of space object
+		CSpaceObject *m_pObj;				//	Object pointer (may be NULL)
+		int m_ivalid;						//	Track if pointer is still valid (m_ivalid == g_ivalid)
+
+		inline static int g_ivalid = 0;		//	Track if pointer is still valid
+
+		//	TSE Item pool
+		static CCItemPool<CCSpaceObject> m_ObjectPool;
+
+	};
+
 
 class CAttributeDataBlock
 	{

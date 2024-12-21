@@ -611,7 +611,7 @@ CVector COrderDesc::GetDataVector (const CString &sField, bool bDefaultField, co
 		{
 		ICCItemPtr pData = GetDataCCItem();
 
-		if (const ICCItem *pValue = pData->GetElement(sField))
+		if (ICCItem *pValue = pData->GetElement(sField))
 			return CTLispConvert::AsVector(pValue);
 		else
 			return vDefault;
@@ -659,7 +659,7 @@ COrderDesc COrderDesc::ParseFromCCItem (CCodeChainCtx &CCX, IShipController::Ord
 	else
 		{
 		char chData = IShipController::GetOrderDataType(iOrder);
-		const ICCItem &Value = *Args.GetElement(iFirstArg);
+		ICCItem &Value = *Args.GetElement(iFirstArg);
 
 		switch (chData)
 			{

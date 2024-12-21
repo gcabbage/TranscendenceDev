@@ -29,6 +29,7 @@ CCItemPool<CCAtomTable> CCodeChain::m_AtomTablePool;
 CCItemPool<CCSymbolTable> CCodeChain::m_SymbolTablePool;
 CCItemPool<CCLambda> CCodeChain::m_LambdaPool;
 CCItemPool<CCVector> CCodeChain::m_VectorPool;
+CCItemPool<CCExternal> CCodeChain::m_ExternalPool;
 CConsPool CCodeChain::m_ConsPool;
 
 CCodeChain::CCodeChain (void) :
@@ -705,6 +706,24 @@ ICCItem *CCodeChain::CreateVectorGivenContent(TArray<int> vShape, TArray<double>
 	pError->Discard();
 	return pVector->Reference();
 }
+
+ICCItem *CCodeChain::CreateExternal(void)
+
+//	CreateExternal
+//
+//	Creates an item
+
+	{
+	ICCItem* pItem;
+
+	pItem = m_ExternalPool.CreateItem();
+	if (pItem->IsError())
+		return pItem;
+
+	pItem->Reset();
+	return pItem->Reference();
+	}
+
 
 ALERROR CCodeChain::DefineGlobal (const CString &sVar, ICCItem *pValue)
 

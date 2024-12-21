@@ -6653,7 +6653,11 @@ ICCItem *fnObjIDGet (CEvalContext *pEvalCtx, ICCItem *pArgs, DWORD dwData)
 			{
 			CSpaceObject *pObj = pCtx->GetUniverse().FindObject(pArgs->GetElement(0)->GetIntegerValue());
 			if (pObj)
-				return pCC->CreateInteger((int)pObj);
+				{
+				CCSpaceObject* pItem = new CCSpaceObject(pObj);
+				return pItem;
+				// return pCC->CreateInteger((int)pObj);
+				}
 			else
 				return pCC->CreateNil();
 			}
@@ -7933,7 +7937,7 @@ ICCItem *fnObjGet (CEvalContext *pEvalCtx, ICCItem *pArgs, DWORD dwData)
 
 		case FN_OBJ_SQUADRON_COMMS_MESSAGES:
 			{
-			const ICCItem *pReceiver = pArgs->GetElement(1);
+			ICCItem *pReceiver = pArgs->GetElement(1);
 			TArray<CString> Messages;
 
 			//	If we have a list, then this is a list of squadron members.
@@ -9652,7 +9656,7 @@ ICCItem *fnObjSet (CEvalContext *pEvalCtx, ICCItem *pArgs, DWORD dwData)
 
 		case FN_OBJ_SQUADRON_COMMS:
 			{
-			const ICCItem *pReceiver = pArgs->GetElement(1);
+			ICCItem *pReceiver = pArgs->GetElement(1);
 			CString sMsg = pArgs->GetElement(2)->GetStringValue();
 
 			//	If we have a list, then this is a list of squadron members.

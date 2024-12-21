@@ -21,9 +21,9 @@ TPropertyHandler<CPlayerShipController> CPlayerShipController::m_PropertyTable =
 				if (retsError) *retsError = CONSTLIT("No targeting computer installed.");
 				return false;
 				}
-
-			CSpaceObject *pTarget = CTLispConvert::AsObject(&Value);
-			Player.SetTarget(pTarget);
+			
+			// CSpaceObject *pTarget = CTLispConvert::AsObject(&Value);
+			// Player.SetTarget(pTarget);
 			return true;
 			},
 		},

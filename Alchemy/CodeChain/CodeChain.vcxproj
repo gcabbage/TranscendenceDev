@@ -757,6 +757,7 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='SteamRelease|x64'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="CCDouble.cpp" />
+    <ClCompile Include="CCExternal.cpp" />
     <ClCompile Include="CCInteger.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Disabled</Optimization>
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug For Contributors|Win32'">Disabled</Optimization>

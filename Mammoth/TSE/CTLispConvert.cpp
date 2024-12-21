@@ -96,7 +96,7 @@ DWORD CTLispConvert::AsImageDesc (const ICCItem *pItem, RECT *retrcRect)
 	return pItem->GetElement(IMAGE_UNID_INDEX)->GetIntegerValue();
 	}
 
-CSpaceObject *CTLispConvert::AsObject (const ICCItem *pItem)
+CSpaceObject *CTLispConvert::AsObject (ICCItem *pItem)
 
 //	AsObject
 //
@@ -223,7 +223,7 @@ bool CTLispConvert::AsSlotDesc (const ICCItem &Value, CDeviceSystem::SSlotDesc &
 	return true;
 	}
 
-CVector CTLispConvert::AsVector (const ICCItem *pItem)
+CVector CTLispConvert::AsVector (ICCItem *pItem)
 
 //	AsVector
 //

@@ -22,12 +22,12 @@ class CTLispConvert
 
 		static ETypes ArgType (ICCItem *pItem, ETypes iDefaultType, ICCItem **retpValue = NULL);
 		static DWORD AsImageDesc (const ICCItem *pItem, RECT *retrcRect);
-		static CSpaceObject *AsObject (const ICCItem *pItem);
+		static CSpaceObject *AsObject (ICCItem *pItem);
 		static bool AsOption (ICCItem *pItem, const CString &sOption) { return (pItem && pItem->GetBooleanAt(sOption)); }
 		static CG32bitPixel AsRGB (const ICCItem *pItem, CG32bitPixel rgbDefault = CG32bitPixel(255, 255, 255));
 		static bool AsScreenSelector (ICCItem *pItem, CDockScreenSys::SSelector *retSelector = NULL);
 		static bool AsSlotDesc (const ICCItem &Value, CDeviceSystem::SSlotDesc &retSlot);
-		static CVector AsVector (const ICCItem *pItem);
+		static CVector AsVector (ICCItem *pItem);
 		static ICCItemPtr CreateCurrencyValue (CurrencyValue Value);
 		static ICCItemPtr CreateItem (const CItem &Value);
 		static ICCItemPtr CreateObject (const CSpaceObject *pObj);

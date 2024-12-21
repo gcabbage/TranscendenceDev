@@ -103,6 +103,7 @@ class ICCItem : public CObject
 			Double,
 			Vector,
 			SymbolTable,
+			External,
 			};
 
 		ICCItem (IObjectClass *pClass);
@@ -156,7 +157,7 @@ class ICCItem : public CObject
 		virtual double GetDoubleValue (void) const { return 0.; }
 		virtual CString GetStringValue (void) const { return LITERAL(""); }
 		virtual ValueTypes GetValueType (void) const = 0;
-		virtual CString GetTypeOf (void);
+		virtual CString GetTypeOf (void) const;
 		virtual bool IsAtom (void) const = 0;
 		virtual bool IsAtomTable (void) const { return false; }
 		virtual bool IsConstant (void) const { return false; }
@@ -807,6 +808,36 @@ class CCSymbolTable : public ICCList
 		IItemTransform *m_pDefineHook;
 	};
 
+//  An external item is a wrapper for an external Cpp object.
+
+class CCExternal : public ICCAtom
+	{
+	public:
+		CCExternal(void);
+
+		//	ICCItem virtuals
+		virtual ICCItem *Clone(CCodeChain* pCC) override;
+		virtual bool IsInteger(void) const override { return true; }
+		virtual bool IsDouble(void) const override { return false; }
+		virtual bool IsIdentifier(void) const override { return false; }
+		virtual bool IsFunction(void) const override { return false; }
+		virtual bool IsPrimitive(void) const override { return false; }
+
+		virtual int GetIntegerValue(void) const override { return m_iValue; }
+		virtual double GetDoubleValue(void) const override { return double(m_iValue); }
+		virtual CString GetStringValue(void) const override { return strFromInt(m_iValue); }
+		virtual ValueTypes GetValueType(void) const override { return External; }
+		virtual CString Print(DWORD dwFlags = 0) const override;
+		virtual void Reset(void) override;
+
+	protected:
+		virtual void DestroyItem(void) override;
+
+	private:
+		int m_iValue;		//	Value of 32-bit integer
+		void *m_pObject;
+	};
+
 //	Item pools
 
 template <class ItemClass>
@@ -908,6 +939,7 @@ class CCodeChain
 		static ICCItem *CreateSystemError (ALERROR error);
 		static ICCItem *CreateTrue (void) { return &m_True; }
 		static ICCItem *CreateVariant (const CString &sValue);
+		static ICCItem *CreateExternal (void);
 		ICCItem *CreateVectorOld (int iSize);
 		ICCItem *CreateFilledVector (double dScalar, TArray<int> vShape);
 		ICCItem *CreateVectorGivenContent (TArray<int> vShape, CCLinkedList *pContentList);
@@ -923,6 +955,7 @@ class CCodeChain
 		static void DestroySymbolTable (ICCItem *pItem) { m_SymbolTablePool.DestroyItem(pItem); }
 		static void DestroyVectorOld (ICCItem *pItem) { delete pItem; }
 		static void DestroyVector(ICCItem *pItem) { m_VectorPool.DestroyItem(pItem); }
+		static void DestroyExternal(ICCItem* pItem) { m_ExternalPool.DestroyItem(pItem); }
 		static ICCItemPtr IncValue (ICCItem *pValue, const ICCItem *pInc = NULL);
 
 		//	Evaluation and parsing routines
@@ -984,6 +1017,7 @@ class CCodeChain
 		static CCItemPool<CCSymbolTable> m_SymbolTablePool;
 		static CCItemPool<CCLambda> m_LambdaPool;
 		static CCItemPool<CCVector> m_VectorPool;
+		static CCItemPool<CCExternal> m_ExternalPool;
 		static CConsPool m_ConsPool;
 	};
 

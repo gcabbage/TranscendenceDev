@@ -209,7 +209,7 @@ CString ICCItem::GetStringAt (const CString &sKey, const CString &sDefault) cons
 	return pItem->GetStringValue();
 	}
 
-CString ICCItem::GetTypeOf (void)
+CString ICCItem::GetTypeOf (void) const
 
 //	GetTypeOf
 //

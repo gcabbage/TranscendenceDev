@@ -2340,6 +2340,10 @@ void CUniverse::PutPlayerInSystem (CShip *pPlayerShip, const CVector &vPos, CSys
 
 	m_CC.DefineGlobalInteger(STR_G_PLAYER_SHIP, (int)pPlayerShip);
 
+	CCSpaceObject* pWrapper;
+	pWrapper = new CCSpaceObject(pPlayerShip);
+	m_CC.DefineGlobal(CONSTLIT("gTestShip"), pWrapper);	// TEST TEST
+
 	//	POV
 
 	SetPOV(pPlayerShip);
@@ -2696,6 +2700,9 @@ void CUniverse::SetCurrentSystem (CSystem *pSystem, bool bPlayerHasEntered)
 		g_TimeScale = TIME_SCALE;
 		g_SecondsPerUpdate = g_TimeScale / g_TicksPerSecond;
 		}
+
+	//	Flag any CSpaceObject wrappers as invalid pointers
+	CCSpaceObject::NotifyOnNewSystem();
 
 	//	Initialize mission cache
 
