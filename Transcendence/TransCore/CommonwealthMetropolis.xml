@@ -509,7 +509,7 @@
 
 					<Action id="actionMilitiaHQ">
 						(block (
-							(rank (typ@ &unidCommonwealthMilitia; 'rank))
+							(rank (typ@ &unidCommonwealthMilitia; 'rpg.rank))
 							)
 							(switch
 								(= rank -1)

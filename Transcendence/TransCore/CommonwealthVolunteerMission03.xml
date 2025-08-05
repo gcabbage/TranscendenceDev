@@ -439,6 +439,9 @@
 					(if (gr totalReward 0)
 						(rpgMissionRewardPayment totalReward currency)
 						)
+
+					(rpgMissionRewardXP &unidCommonwealthMilitia; 0 gSource)
+
 					)
 
 			</OnReward>

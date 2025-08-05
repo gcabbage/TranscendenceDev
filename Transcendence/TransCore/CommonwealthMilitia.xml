@@ -76,17 +76,14 @@
 						}
 					)
 			</Definition>
-			<DynamicGlobal id="rank">(typGetData gType 'rank)</DynamicGlobal>
+			<Global id="rpg.rank"></Global>
+			<Global id="rpg.xp">0</Global>
+
 			<DynamicGlobal id="rankID">
 				(block (
-					(rank (typ@ gType 'rank))
+					(rank (typ@ gType 'rpg.rank))
 					)
 					(switch
-						(not rank)
-							(if (msnFind "r +commonwealthMilitia;")
-								'volunteer
-								)
-
 						(= rank -1)
 							'blacklisted
 
@@ -96,15 +93,10 @@
 			</DynamicGlobal>
 			<DynamicGlobal id="rankIcon">
 				(block (
-					(rank (or (typ@ gType 'rank) 0))
+					(rank (typ@ gType 'rpg.rank))
 					(rankTable (typ@ gType 'rankTable))
 					)
-					(switch
-						(= rank -1)
-							Nil
-
-						(@ (@ rankTable rank) 'icon)
-						)
+					(@ (@ rankTable rank) 'icon)
 					)
 			</DynamicGlobal>
 			<DynamicGlobal id="rankNoun">
@@ -144,7 +136,7 @@
 			<GetGlobalAchievements>
 				(append
 					;	Rank
-					(if  (typ@ gType 'rank)
+					(if  (typ@ gType 'rpg.rank)
 						(list
 							(list
 								"Commonwealth militia rank"
@@ -160,7 +152,7 @@
 
 			<GetGlobalPlayerPriceAdj>
 				(block (rank)
-					(setq rank (typGetData &unidCommonwealthMilitia; 'rank))
+					(setq rank (typ@ gType 'rpg.rank))
 
 					(switch
 						;	Only at armory
@@ -195,6 +187,62 @@
 						)
 					)
 			</GetGlobalPlayerPriceAdj>
+
+			<CheckPromotion>
+				(block (
+					(rank (typ@ gType 'rpg.rank))
+					(rankTable (typ@ gType 'rankTable))
+					(nextRank (+ rank 1))
+					(nextRankDesc (@ rankTable nextRank))
+
+					(success (typ@ gType 'rankSuccessCount))
+					(failure (typ@ gType 'rankFailureCount))
+
+					(successForNextRank
+						(max (@ nextRankDesc 'minTotalSuccess) 
+							(+ failure (@ nextRankDesc 'minNetSuccess))
+							)
+						)
+					)
+					(dbgoutput "CheckPromotion rank:" rank " s:" success " f:" failure " required:" successForNextRank)
+					(switch
+						(geq failure (+ success 3))
+							;	If the player ever ends up with 3 more failures than.
+							;	successes then he is booted.
+							-1
+
+						(geq success successForNextRank)
+							;	If we have complete enough missions for next level then promote.
+							nextRank
+
+						(not rank)
+							;	If rank is still Nil, then we become a volunteer.
+							0
+						)
+
+					)
+			</CheckPromotion>
+
+			<OnPromotion>
+				(block (
+					(rank (typ@ gType 'rpg.rank))
+					)
+					(dbgOutput "OnPromotion: " rank)
+					(switch
+						(= rank 1)
+							(block Nil
+								(objAddItem gPlayerShip (itmCreate &itMilitaryID; 1))
+								(itmSetKnown &itMilitaryID;)
+								)
+
+						(= rank 2)
+							(objAddItem gPlayerShip (itmCreate &itMedalOfDistinction; 1))
+
+						(= rank 3)
+							(objAddItem gPlayerShip (itmCreate &itMedalOfHonor; 1))
+						)
+					)
+			</OnPromotion>
 		</Events>
 
 		<Language>
@@ -204,15 +252,12 @@
 					(successList (plyGetKeyEventStat gPlayer 'missionSuccess Nil "* +commonwealthMilitia;"))
 					(failureList (plyGetKeyEventStat gPlayer 'missionFailure Nil "* +commonwealthMilitia;"))
 
-					(rank (or (typ@ gType 'rank) 0))
+					(rank (typ@ gType 'rpg.rank))
 					(rankTable (typ@ gType 'rankTable))
-					(rankDesc 
-						(if (!= rank -1)
-							(@ rankTable rank)
-							)
-						)
+					(rankDesc (@ rankTable rank))
+
 					(nextRankDesc
-						(if (and (!= rank -1) (ls rank 3))
+						(if (!= rank -1)
 							(@ rankTable (+ rank 1))
 							)
 						)
@@ -291,6 +336,35 @@
 			<RTF id="rtfValue">{/rtf {/f:LargeBold;/c:#ffe667; %value%}}</RTF>
 
 			<Text id="rpg.missionTypeDesc">Commonwealth militia missions</Text>
+	
+			<Code id="rpg.descPromotion">
+				(typTranslate gType (cat "descPromotion." (typ@ gType 'rankID)))
+			</Code>
+
+			<Text id="descPromotion.lieutenant">
+
+				"Your success on this mission has brought you great respect.
+				It is my privilege to bestow upon you the rank of lieutenant
+				in service to the Commonwealth Militia."
+
+				General Powell hands you a military ID chip.
+
+			</Text>
+			<Text id="descPromotion.captain">
+
+				"Your skills on this mission have brought you great admiration.
+				It is my honor to present you with the Commonwealth Medal of Distinction
+				and to promote you to the rank of captain. Congratulations!"
+
+			</Text>
+			<Text id="descPromotion.major">
+
+				"Your bravery has brought great honor to you and to the Militia.
+				It is my honor to present you with the Commonwealth Medal of Honor
+				and to promote you to the rank of major. Congratulations!"
+
+			</Text>
+
 		</Language>
 	</Type>
 
@@ -413,11 +487,12 @@
 				<Panes>
 					<Default>
 						<OnPaneInit>
-							(block (rank)
-								(setq rank (typGetData &unidCommonwealthMilitia; 'rank))
+							(block (
+								(rank (typ@ &unidCommonwealthMilitia; 'rpg.rank))
+								)
 
 								(switch
-									(not rank)
+									(or (not rank) (= rank 0))
 										(scrSetDescTranslate gScreen "descWelcome:New")
 
 									(= rank -1)
@@ -435,7 +510,7 @@
 
 							<Action id="actionCommandCenter" default="1">
 								(block (
-									(rank (typGetData &unidCommonwealthMilitia; 'rank))
+									(rank (typ@ &unidCommonwealthMilitia; 'rpg.rank))
 									(commonCriteria (cat "n +commonwealthMilitia; -commonwealthVolunteer; +rank" (int rank) "; =" (sysGetLevel) ";"))
 									)
 									(if (objGetItems gPlayerShip "* +militaryID;")
@@ -461,21 +536,21 @@
 							</Action>
 
 							<Action id="actionDockServices">
-								(if (gr (typGetData &unidCommonwealthMilitia; 'rank) 0)
+								(if (gr (typ@ &unidCommonwealthMilitia; 'rpg.rank) 0)
 									(rpgDockServices gPlayerShip)
 									(scrShowScreen gScreen &dsRPGMessage; { textID:'descNoDockServicesAccess })
 									)
 							</Action>
 
 							<Action id="actionBuyShip">
-								(if (gr (typGetData &unidCommonwealthMilitia; 'rank) 0)
+								(if (gr (typ@ &unidCommonwealthMilitia; 'rpg.rank) 0)
 									(scrShowScreen gScreen &dsRPGShipBroker;)
 									(scrShowScreen gScreen &dsRPGMessage; { textID:'descNoShipBrokerAccess })
 									)
 							</Action>
 
 							<Action id="actionOfficersClub">
-								(if (gr (typGetData &unidCommonwealthMilitia; 'rank) 0)
+								(if (gr (typ@ &unidCommonwealthMilitia; 'rpg.rank) 0)
 									(scrShowPane gScreen "OfficersClub")
 									(scrShowScreen gScreen &dsRPGMessage; { textID:'descNoOfficersClubAccess })
 									)
@@ -495,7 +570,7 @@
 									(scrShowScreen gScreen &dsRPGMessage; { textID:'descBarNoMoney })
 
 									(block (
-										(rank (typGetData &unidCommonwealthMilitia; 'rank))
+										(rank (typ@ &unidCommonwealthMilitia; 'rpg.rank))
 										)
 										(plyCharge gPlayer 5)
 										(switch
@@ -753,7 +828,7 @@
 
 			</Text>
 			<Text id="descNoMissions">
-				(if (= (typGetData &unidCommonwealthMilitia; 'rank) -1)
+				(if (= (typ@ &unidCommonwealthMilitia; 'rpg.rank) -1)
 					(typTranslate &stCommonwealthFortress; 'descNoMissions.blacklisted)
 					(typTranslate &stCommonwealthFortress; 'descNoMissions.normal)
 					)
@@ -1080,13 +1155,13 @@
 		<Panes>
 			<Default>
 				<OnPaneInit>
-					(scrSetDescTranslate gScreen (cat "Promotion:" (typGetData &unidCommonwealthMilitia; 'rank)))
+					(scrSetDescTranslate gScreen (cat "Promotion:" (typ@ &unidCommonwealthMilitia; 'rpg.rank)))
 				</OnPaneInit>
 
 				<Actions>
 					<Action id="actionContinue" default="1" cancel="1">
 						(block (
-							(rank (typGetData &unidCommonwealthMilitia; 'rank))
+							(rank (typ@ &unidCommonwealthMilitia; 'rpg.rank))
 							)
 							(switch
 								(= rank 1)
@@ -1141,7 +1216,7 @@
 		(block Nil
 			(setq milCanEnterCC (lambda ()
 				(or
-					(gr (typGetData &unidCommonwealthMilitia; 'rank) 0)
+					(gr (typ@ &unidCommonwealthMilitia; 'rpg.rank) 0)
 					(gr (typGetData &stBattleArena; "arenaSkill") 200)
 					(gr (typGetData &unidKorolovShipping; "xp") 0)
 					(msnFind "r +commonwealthVolunteer; +property:isSuccess;")
@@ -1151,7 +1226,7 @@
 
 			(setq milMissionCompleted (lambda (missionObj reason data)
 				(block (
-					(rank (typGetData &unidCommonwealthMilitia; 'rank))
+					(rank (typ@ &unidCommonwealthMilitia; 'rpg.rank))
 					(success (typ@ &unidCommonwealthMilitia; 'rankSuccessCount))
 					(failure (typ@ &unidCommonwealthMilitia; 'rankFailureCount))
 					promoted
@@ -1167,7 +1242,7 @@
 							;	If the player ever ends up with 3 more failures than
 							;	successes then he is booted.
 							(if (geq failure (+ success 3))
-								(typSetData &unidCommonwealthMilitia; 'rank -1)
+								(typSet@ &unidCommonwealthMilitia; 'rpg.rank -1)
 								)
 
 						(not rank)
@@ -1199,30 +1274,19 @@
 				(block (
 					(reward (msn@ missionObj 'reward))
 					)
+					;	Initialize player rank if required (prevents a promotion to volunteer screen)
+					(if (not (typ@ &unidCommonwealthMilitia; 'rpg.rank))
+						(typSet@ &unidCommonwealthMilitia; 'rpg.rank 0)
+						)
+
 					;	Pay the player and record the award
 					(if reward
 						(rpgMissionRewardPayment reward)
 						)
 
 					;	Increase XP
-					(typIncData &unidCommonwealthMilitia; 'xp (msnGetData missionObj 'missionXP))
+					(rpgMissionRewardXP &unidCommonwealthMilitia; (msnGetData missionObj 'missionXP) missionObj)
 
-					;	Check to see if we've been promoted
-					(if (typGetData &unidCommonwealthMilitia; 'promote)
-						(block Nil
-							;	Clear promotion flag
-							(typSetData &unidCommonwealthMilitia; 'promote Nil)
-
-							;	dsRPGMission checks for a well-known data member in the mission
-							;	object to see if it should navigate to an additional screen.
-							(if missionObj
-								(msnSetData missionObj 'rewardNextScreen &dsMilitiaPromotion;)
-								)
-
-							;	Set the new rank
-							(typIncData &unidCommonwealthMilitia; 'rank)
-							)
-						)
 					)
 				))
 			)

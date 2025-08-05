@@ -42,6 +42,10 @@
 					)
 			</OnTargetChosen>
 
+			<OnReward>
+				(milGiveReward gSource)
+			</OnReward>
+
 			<OnGlobalSystemDiagnostics>
 				(block (
 					(stationType

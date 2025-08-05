@@ -87,9 +87,7 @@
 			</OnCompleted>
 			
 			<OnReward>
-				;	Pay the player and record the award
-
-				(rpgMissionRewardPayment (msn@ gSource 'reward))
+				(milGiveReward gSource)
 			</OnReward>
 
 			<OnGlobalSystemDiagnostics>
