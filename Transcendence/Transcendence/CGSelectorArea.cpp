@@ -1593,6 +1593,7 @@ void CGSelectorArea::SetRegionsFromWeapons (const CSpaceObject &Source)
 		return;
 
 	const CShipClass &Class = pShip->GetClass();
+	const CHullDesc &Hull = Class.GetHullDesc();
 
 	//	Keep track of layouts that have already been used.
 
@@ -1700,7 +1701,7 @@ void CGSelectorArea::SetRegionsFromWeapons (const CSpaceObject &Source)
 #else
 		int iWeaponSlotsInUse;
 		int iTotalSlotsInUse = pShip->CalcDeviceSlotsInUse(&iWeaponSlotsInUse);
-		int iEmptySlots = Max(1, Min((pClass->GetMaxDevices() - iTotalSlotsInUse), (pClass->GetMaxWeapons() - iWeaponSlotsInUse)) - (bHasLauncher ? 0 : 1));
+		int iEmptySlots = Max(1, Min((Hull.GetMaxDevices() - iTotalSlotsInUse), (Hull.GetMaxWeapons() - iWeaponSlotsInUse)) - (bHasLauncher ? 0 : 1));
 #endif
 
 		//	Try to position the empty slots
